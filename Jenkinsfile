@@ -1,34 +1,70 @@
 pipeline {
     agent any
 
+    environment {
+        FRONTEND_REPO = 'https://github.com/Gnanasai1234/CapstoneProject.git'
+        BACKEND_REPO  = 'https://github.com/Gnanasai1234/BackendApp.git'
+    }
+
     stages {
-        stage('Clone') {
+        stage('Clone Frontend') {
             steps {
-                git branch:'main', url:'https://github.com/Gnanasai1234/CDDPROJECT.git'
+                dir('frontend') {
+                    git branch: 'main', url: "${FRONTEND_REPO}"
+                }
             }
         }
-        stage('Build') {
+
+        stage('Build Frontend') {
             steps {
-                bat './mvnw clean package -DskipTests' // Build your project using Maven wrapper
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm run build'
+                }
             }
         }
+
+        stage('Clone Backend') {
+            steps {
+                dir('backend') {
+                    git branch: 'main', url: "${BACKEND_REPO}"
+                }
+            }
+        }
+
+        stage('Copy Frontend to Backend') {
+            steps {
+                // Copy React build output into Spring Boot static folder
+                bat 'xcopy frontend\\build backend\\src\\main\\resources\\static /E /I /Y'
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                dir('backend') {
+                    bat './mvnw clean package -DskipTests'
+                }
+            }
+        }
+
         stage('Docker Build & Run') {
             steps {
-                bat 'docker-compose down'  // Stop any running containers
-                bat 'docker-compose build' // Build Docker images
-                
-                bat 'docker-compose up -d' // Run containers in detached mode
+                // Assuming docker-compose.yml is in backend folder
+                dir('backend') {
+                    bat 'docker-compose down'
+                    bat 'docker-compose build'
+                    bat 'docker-compose up -d'
+                }
             }
         }
     }
 
-    post{
-        success{
-            echo "Pipiline Completed Successfully!....."
+    post {
+        success {
+            echo "Pipeline Completed Successfully! 🎉"
         }
-        failure{
-            echo "Pipeline Failed check project !..."
+        failure {
+            echo "Pipeline Failed. Please check the logs."
         }
-
     }
 }

@@ -10,7 +10,7 @@ pipeline {
         stage('Clone Frontend') {
             steps {
                 dir('frontend') {
-                    git branch: 'main', url: "${FRONTEND_REPO}"
+                    git branch: 'master', url: "${FRONTEND_REPO}"
                 }
             }
         }
@@ -27,7 +27,7 @@ pipeline {
         stage('Clone Backend') {
             steps {
                 dir('backend') {
-                    git branch: 'main', url: "${BACKEND_REPO}"
+                    git branch: 'master', url: "${BACKEND_REPO}"
                 }
             }
         }
